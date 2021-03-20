@@ -1,28 +1,37 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <div class="wContainer">
+      <!-- 头部-->
+      <div class="wHeader">
+          <w-header/>
+      </div>
+      <!-- 主体 -->
+      <div class="wMain">
+        <router-view/>
+      </div>
+      <!-- 底部 -->
+      <div class="wFooter">
+        <w-footer/>
+      </div>
+    </div>
+
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
-
+import WHeader from '@/components/Header'
+import WFooter from '@/components/Footer'
 export default {
   name: 'app',
   components: {
-    HelloWorld
+    WHeader,
+    WFooter
   }
 }
 </script>
-
-<style>
-#app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
+<style lang="stylus" scoped>
+  .wHeader
+    box-sizing: border-box;
+    height: 75px;
+    flex: 0 0 75px;
 </style>
