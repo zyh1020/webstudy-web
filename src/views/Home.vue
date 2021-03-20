@@ -4,29 +4,29 @@
         <!-- 导航和轮播 -->
         <div class="home-container">
             <!-- 侧边导航 -->
-            <Nav/>
+            <nav-left-side/>
             <!-- 轮播图-->
-            <Carousel></Carousel>
+            <nav-banner></nav-banner>
             <!-- 右下方图 -->
-            <Banner/>
+            <nav-bottom-course/>
         </div>
         <!--  实战导航 -->
-        <course-list :list="lessonData.recommend" title="实／战／推／荐" type="recommend" :position="0" />
+        <home-course-container :list="lessonData.recommend" title="实／战／推／荐" type="recommend" :position="0" />
         <!-- 新上好课 -->
-        <course-list :list="lessonData.recommend" title="新／上／好／课" type="new" :position="1" />
+        <home-course-container :list="lessonData.recommend" title="新／上／好／课" type="new" :position="1" />
         <!-- 新手入门 -->
-        <course-list :list="lessonData.recommend" title="新／手／入／门" type="easy" :position="2" />
+        <home-course-container :list="lessonData.recommend" title="新／手／入／门" type="easy" :position="2" />
         <!-- 技能提升 -->
-        <course-list :list="lessonData.recommend" title="技／能／提／升" type="improve" :position="3" />
+        <home-course-container :list="lessonData.recommend" title="技／能／提／升" type="improve" :position="3" />
         <!-- 前言技术 -->
-        <course-list :list="lessonData.recommend" title="前／沿／技／术" type="advanced" :position="4" />
+        <home-course-container :list="lessonData.recommend" title="前／沿／技／术" type="advanced" :position="4" />
     </div>
 </template>
 <script>
-    import Nav from './nav.vue'
-    import Banner from './banner.vue'
-    import Carousel from './Carousel'
-    import CourseList from '@/components/course/course-list'
+    import NavLeftSide from './Home/NavLeftSide'
+    import NavBottomCourse from './Home/NavBottomCourse'
+    import NavBanner from './Home/NavBanner'
+    import HomeCourseContainer from './Home/HomeCourseContainer'
     export default {
         name: 'Home',
         data(){
@@ -56,10 +56,10 @@
           }
         },
         components: {
-            Nav,
-            Banner,
-            Carousel,
-            CourseList
+            NavLeftSide,
+            NavBottomCourse,
+            NavBanner,
+            HomeCourseContainer
         }
     }
 </script>

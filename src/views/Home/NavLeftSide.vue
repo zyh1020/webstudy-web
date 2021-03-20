@@ -16,12 +16,12 @@
       @mouseleave="handleContentLeave"
     >
       <!--<nav-content v-show="showNavContent" :tags="currentTags" :lessons="currentLessons" />-->
-      <nav-content v-show="showNavContent"/>
+      <nav-left-hover-main v-show="showNavContent"/>
     </div>
   </div>
 </template>
 <script>
-import NavContent from './nav-content.vue'
+import NavLeftHoverMain from './NavLeftHoverMain.vue'
 
 export default {
   data () {
@@ -81,7 +81,7 @@ export default {
     }
   },
   components: {
-    NavContent
+    NavLeftHoverMain
   }
 }
 </script>

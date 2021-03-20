@@ -6,7 +6,6 @@
       {{ title }}
       <i class="title-icon right-icon" :style="getBackgroundPosition(false)" />
     </h2>
-
     <!-- 课程banner -->
     <div v-if="currentBanner && currentBanner.length > 0" class="split-banner">
       <div
@@ -24,13 +23,12 @@
         <div class="mask" />
       </div>
     </div>
-
     <!-- 课程列表 -->
-    <course-list v-if="list.length" class="course-list" :list="list" />
+    <home-course-list v-if="list.length" class="course-list" :list="list" />
   </div>
 </template>
 <script>
-import CourseList from '@/components/course/course.vue'
+import HomeCourseList from './HomeCourseList'
 export default {
   props: {
     list: {
@@ -100,7 +98,7 @@ export default {
     }
   },
   components: {
-    CourseList
+    HomeCourseList
   }
 }
 </script>
