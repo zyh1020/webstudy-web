@@ -8,13 +8,13 @@
                     <input type="text" placeholder="请输入你的问题">
                     <i class="iconfont el-icon-search"></i>
                 </div>
-                <div class="search-btn">
+                <div class="search-btn" @click="showAddProblemDialog">
                     提问
                 </div>
             </div>
             <div v-if="userInfo.id" class="question-nav">
                 <dl>
-                    <dt>我的关注：</dt>
+                    <dt>问题分类：</dt>
                     <dd
                             v-for="(item, index) in followList"
                             :key="index"
@@ -25,7 +25,6 @@
                     >
                         {{ item.title }}
                     </dd>
-                    <dd @click="handleLabelManageClick">标签管理</dd>
                 </dl>
             </div>
         </div>
@@ -39,16 +38,15 @@
                             <div class="finish">
                                 <!-- 是否解决了 -->
                                 <span v-if="item.isResolve" class="iconfont el-icon-check"></span>
-                                <!-- 回答的个数-->
-                                <span>{{ item.answers }}</span>
+                                <span>?</span>
                             </div>
                             <div class="content-box">
                                 <!-- 问题的标题 -->
-                                <h3 class="title">
+                                <h3 class="title" @click="toProblemDetils(item)">
                                     {{ item.title }}
                                 </h3>
                                 <p class="tag">
-                                    <img :src="item.icon" alt="">
+                                    <img src="https://img.mukewang.com/59e96f340001faac02400240.jpg" alt="">
                                     <span
                                             v-for="(tag, index) in item.tags"
                                             :key="index"
@@ -65,44 +63,60 @@
                         </li>
                     </ul>
                    <!-- <empty v-else message="暂无相关猿问数据"></empty>-->
+                    <!-- 分页 -->
+                    <el-pagination
+                            class = "footerPage"
+                            background
+                            layout="prev, pager, next"
+                            :total="1000">
+                    </el-pagination>
                 </div>
+
             </div>
-           <!-- 分页 -->
+
         </div>
 
-        <!-- 标签弹框设置 -->
+        <!-- 添加问题对话框 -->
         <el-dialog
-            title="选择感兴趣的标签"
-            :visible.sync="dialogVisible"
-            width="600px">
-            <div class="label-container">
-                <dl v-for="(type, index) in labelList"
-                        :key="index"
-                        class="label-group">
-                    <dt class="label-group-title">{{ type.title }}</dt>
-                    <dd v-for="(label, labelIndex) in type.list"
-                            :key="labelIndex"
-                            class="label-item"
-                            :class="{
-                                'is-active': label.isSelected
-                             }"
-                            @click="handleLabelClick(index, label, labelIndex)">
-                        {{ label.title }}
-                    </dd>
-                </dl>
-            </div>
-            <template slot="footer">
-                <el-button type="success" :disabled="isLoading" @click="handleFollowClick">完成</el-button>
-            </template>
+                title="添加问题"
+                :visible.sync="addProblemDialogVisible"
+                width="40%">
+            <el-form ref="form" :model="problem" label-width="85px">
+                    <el-form-item label="问题标题：">
+                        <el-input v-model="problem.problemTitle"></el-input>
+                    </el-form-item>
+                    <el-form-item label="问题分类：">
+                        <el-select v-model="problem.sortId" placeholder="请选择">
+                            <el-option :label="sort.name" :value="sort.id" v-for="(sort,index) in sortList" :key="index"></el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="问题描述：">
+                        <el-input type="textarea" v-model="problem.problemContent" :rows="8"></el-input>
+                    </el-form-item>
+            </el-form>
+
+
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="addProblemDialogVisible = false">取 消</el-button>
+                <el-button type="primary" @click="addProblem">确 定</el-button>
+            </span>
         </el-dialog>
+
     </div>
 </template>
 
 <script>
+    import {getAllCategoryList} from '@/api/sort/category'
+    import {addOneProblem} from '@/api/question/problem'
+
     export default {
         name: "index",
         data(){
             return{
+                addProblemDialogVisible: false, //添加问题对话框
+                allSorts:[], // 分类列表
+                sortList:[], // 筛选后的分类列表
+                problem:{},
                 userInfo:{
                   id: 'zyh'
                 },
@@ -165,22 +179,49 @@
                     views: 30
                 }] // 问题列表
             }
-
         },
         methods:{
-            // 点击标签管理
-            handleLabelManageClick(){
-                this.dialogVisible = true;
-                // 获取所有标签
+            // 获取分类列表
+            getSortList(){
+                getAllCategoryList().then(response => {
+                    if(response){
+                        this.allSorts = response.data;
+                        // 筛选分类列表
+                        this.getScreenSortList()
+                    }
+                })
             },
-            // 选择标签后点击完成
-            handleFollowClick(){
-                this.dialogVisible = false;
-                this.isLoading = true;
+            // 筛选分类列表
+            getScreenSortList(){
+                this.sortList = [];
+                for(let sort of this.allSorts){
+                    if(sort.level == 1){
+                        this.sortList.push(sort);
+                    }
+                }
             },
-            // 选中标签
-            handleLabelClick(index, label, labelIndex){
-
+            toProblemDetils(problem){
+                console.log(problem);
+                this.$router.push({
+                    path:'/questionDetail',
+                    query:{ problemId: 1}
+                })
+            },
+            // 添加问题对话框
+            async showAddProblemDialog(){
+                if(this.sortList.length <= 0){
+                  await this.getSortList();
+                }
+                this.addProblemDialogVisible = true;
+            },
+            // 添加问题
+            addProblem(){
+                addOneProblem(this.problem).then(response =>{
+                    if(response){
+                        // 从新获取数据
+                        this.addProblemDialogVisible = false;
+                    }
+                })
             },
             // 更改标签类型
             handleLikeClick(item, index){
@@ -191,6 +232,9 @@
 </script>
 
 <style lang="stylus" scoped>
+    .footerPage{
+        margin: 30px auto;
+    }
     .m-center
         margin: 0 auto;
         width: 1152px;
@@ -259,9 +303,6 @@
                     line-height: 24px;
                 dd
                     cursor: pointer;
-                    &:last-child
-                        float: right;
-                        margin-right: 0;
                     &:hover, &.active
                         color: #06b571;
         .question-content-container

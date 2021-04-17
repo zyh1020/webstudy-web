@@ -76,7 +76,9 @@
             },
             // 课程点击事件
             handleCourseClick (lesson) {
-                this.$router.push({ path: `/courseDetail` })
+                this.$router.push({
+                    path:'/courseDetail',
+                    query:{ courseId:1 }})
             }
         }
     }

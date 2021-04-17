@@ -32,7 +32,7 @@ export default {
   methods: {
     // 获取随机背景色
     getBackgroundColor (index) {
-      let len = this.colors.length
+      let len = this.colors.length;
       return this.colors[index % len]
     }
   }

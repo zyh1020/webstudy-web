@@ -2,9 +2,11 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 const Home = () => import("@/views/Home");
 const Courses = () => import("@/views/course/index");
-const CourseDetail = () => import("@/views/courseDetail/index");
+const CourseDetail = () => import("@/views/course/CourseDetatil");
 const Article = () => import("@/views/article/index");
 const Question = () => import("@/views/question/index");
+const QuestionDetail = () => import("@/views/question/ProblemDetail");
+const AddOrUpdateArticle = () => import("@/views/article/AddOrUpdateArticle");
 
 Vue.use(VueRouter);
 
@@ -33,6 +35,17 @@ const routes = [
         path:'/question',
         name:'问题',
         component: Question
+    },
+    {
+        path:'/questionDetail',
+        name:'问题详情',
+        component: QuestionDetail
+    }
+    ,
+    {
+        path:'/addOrUpdteArticle',
+        name:'添加文章',
+        component: AddOrUpdateArticle
     }
 ];
 const router = new VueRouter({

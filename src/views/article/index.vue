@@ -5,10 +5,10 @@
             <img class="article-icon" src="https://www.imooc.com/static/img/article/article-logo.png" alt="">
             <div class="search-container">
                 <div class="search-box">
-                    <input type="text" placeholder="搜索感兴趣的知识和文章">
-                    <i class="iconfont el-icon-search"></i>
+                    <input type="text" placeholder="搜索感兴趣的知识和文章"  v-model="currentTitle">
+                    <i class="iconfont el-icon-search" @click="changeSeach"></i>
                 </div>
-                <span class="write-btn">写文章</span>
+                <span class="write-btn" @click="showAddArticle">写文章</span>
             </div>
         </div>
 
@@ -18,48 +18,55 @@
             <div class="nav">
                 <ul>
                     <li
-                            v-for="(item,index) in navList"
+                            v-for="(sort,index) in  sortList"
                             :key="index"
                             class="nav-item"
-                            :class="{active: currentNavIndex==index}"
-                            @click="handleNavClick(item, index)"
+                            :class="{active: currentSortId == sort.id}"
+                            @click="handleNavClick(sort)"
                     >
-                        {{ item }}
+                        {{ sort.name }}
                     </li>
                 </ul>
             </div>
-
-            <!-- -->
+            <!-- 文章列表  -->
             <div class="list">
                 <div v-if="articleList && articleList.length">
                     <!-- 文章列表 -->
                     <ul class="list-content">
-                        <li v-for="(item,index) in articleList" :key="index" class="list-item">
+                        <li v-for="(article,index) in articleList" :key="index" class="list-item">
                             <div class="img-box">
-                                <img :src="item.img" alt="">
+                                <img :src="article.sysUser.userAvatar" alt="">
                             </div>
                             <div class="content">
                                 <p class="title">
-                                    {{ item.title }}
+                                    {{ article.articleTitle }}
                                 </p>
                                 <p class="information">
                                     <span class="iconfont el-icon-view"></span>
-                                    <span class="number">{{ item.views }}</span>
-                                    <span class="author">{{ item.author }}</span>
-                                    <span class="tag">{{ item.tag }}</span>
-                                    <span class="time">{{ item.time }}</span>
+                                    <span class="number">{{ article.lookNum }}</span>
+                                    <span class="author">{{ article.sysUser.name }}</span>
+                                    <span class="tag">{{ article.sortName }}</span>
+                                    <span class="time">{{ article.createTime | formatDate }}</span>
                                 </p>
                             </div>
                         </li>
                     </ul>
 
                     <!-- 分页 -->
-
+                    <el-pagination
+                            style="margin: 30px auto"
+                            background
+                            layout="prev, pager, next"
+                            :current-page="page"
+                            :page-size="limit"
+                            :total="total"
+                            @current-change="pageChange">
+                    </el-pagination>
                 </div>
                 <div class="empty-container" v-else>
                     <img class="empty-img" src="@/assets/images/empty.jpg" alt="">
                     <p class="empty-msg">
-                        {{ message }}
+                       神马也没有
                     </p>
                 </div>
             </div>
@@ -68,41 +75,100 @@
 </template>
 
 <script>
+    import {pageFindArticles} from '@/api/article/article'
+    import {getAllCategoryList} from '@/api/sort/category'
+
     export default {
         name: "index",
+        filters:{
+            formatDate(date){
+                let dt = new Date(date);
+                const y = dt.getFullYear();
+                const m = (dt.getMonth() + 1 + '').padStart(2,'0');
+                const d = (dt.getDate() +'').padStart(2,'0');
+                const hh = (dt.getHours() + '').padStart(2,'0');
+                const mm = (dt.getMinutes() + '').padStart(2,'0');
+                const ss = (dt.getSeconds() + '').padStart(2,'0');
+                return `${y}-${m}-${d} ${hh}:${mm}:${ss}`;
+
+            }
+        },
         data(){
             return {
-                currentNavIndex: 1,
-                navList:['推荐','推荐','推荐','推荐','推荐','推荐','推荐','推荐','推荐','推荐','推荐'],
-                articleList: [{
-                    img:'https://img1.mukewang.com/5bf3a0670001160b02720272-200-200.jpg',
-                    title:'怎样学习 SpringBoot',
-                    views: '30',
-                    author:'张勤一',
-                    tag:'Java',
-                    time:'07.31'
-                },{
-                    img:'https://img1.mukewang.com/5bf3a0670001160b02720272-200-200.jpg',
-                    title:'怎样学习 SpringBoot',
-                    views: '30',
-                    author:'张勤一',
-                    tag:'Java',
-                    time:'07.31'
-                },{
-                    img:'https://img1.mukewang.com/5bf3a0670001160b02720272-200-200.jpg',
-                    title:'怎样学习 SpringBoot',
-                    views: '30',
-                    author:'张勤一',
-                    tag:'Java',
-                    time:'07.31'
-                }]
+                currentSortId: 0, // 当前分类
+                currentTitle:'',
+                allSorts:[], // 所有分类
+                sortList:[], // 筛选后分类
+                conditionArticle:{}, // 查询条件
+                articleList: [],
+                page:1,
+                limit:6,
+                total:0,
             }
         },
         methods: {
-            handleNavClick(item, index){
-                this.currentNavIndex = index;
-                // 根据item获取最新的数据
+            showAddArticle(){ // 路由跳转到添加文章界面
+                this.$router.push("/addOrUpdteArticle");
+            },
+            // 获取分类列表
+            getSortList(){
+                getAllCategoryList().then(response => {
+                    if(response){
+                        this.allSorts = response.data;
+                        // 筛选分类列表
+                        this.getScreenSortList()
+                    }
+                })
+            },
+            // 筛选分类列表
+            getScreenSortList(){
+                this.sortList = [];
+                this.sortList.push({id:'0',name:'全部'});
+                for(let sort of this.allSorts){
+                    if(sort.level == 1){
+                        this.sortList.push(sort);
+                    }
+                }
+            },
+            changeSeach(){ // 改变输入的标题值
+                this.page = 1;
+                // 获取最新的数据
+                this.pageFindArticles();
+            },
+            pageChange(currentPage){ // 分页改变
+                console.log(currentPage);
+                this.page = currentPage;
+                // 获取最新的数据
+                this.pageFindArticles();
+            },
+            pageFindArticles(){ // 分页查询
+                this.conditionArticle ={};
+                if(this.currentSortId != 0){
+                    this.conditionArticle.sortId = this.currentSortId;
+                }
+                if(this.currentTitle != ''){
+                    this.conditionArticle.articleTitle = this.currentTitle;
+                }
+                pageFindArticles(this.page,this.limit,this.conditionArticle).then(response =>{
+                    if(response){
+                        this.articleList = response.data.articles;
+                        this.total = response.data.total;
+                    }
+                });
+
+            },
+            handleNavClick(sort){
+                this.page = 1;
+                this.currentSortId = sort.id;
+                // 获取最新的数据
+                this.pageFindArticles();
             }
+        },
+        created() {
+            // 查询所有分类
+            this.getSortList();
+            // 查询文章
+            this.pageFindArticles();
         }
     }
 </script>

@@ -23,10 +23,10 @@
     </div>
 </template>
 <script>
-    import NavLeftSide from './Home/NavLeftSide'
-    import NavBottomCourse from './Home/NavBottomCourse'
-    import NavBanner from './Home/NavBanner'
-    import HomeCourseContainer from './Home/HomeCourseContainer'
+    import NavLeftSide from './home/NavLeftSide'
+    import NavBottomCourse from './home/NavBottomCourse'
+    import NavBanner from './home/NavBanner'
+    import HomeCourseContainer from './home/HomeCourseContainer'
     export default {
         name: 'Home',
         data(){
@@ -60,6 +60,9 @@
             NavBottomCourse,
             NavBanner,
             HomeCourseContainer
+        },
+        created() {
+            window.sessionStorage.setItem("token","eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImNyZWF0ZWQiOjE2MTg2NTMyNjM0OTgsImV4cCI6MTYxODczOTY2M30.L6swEu2URiod_RW004qAhn345IhiyWMkR_xZ6gS_j_FAX5W_0IZVO4-vkcHX32REzbxp76JCd3rL-LJw-71jdw");
         }
     }
 </script>
