@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 const Home = () => import("@/views/Home");
-const Courses = () => import("@/views/course/index");
+const CourseList = () => import("@/views/course/CourseList");
 const CourseDetail = () => import("@/views/course/CourseDetatil");
 const Article = () => import("@/views/article/index");
 const Question = () => import("@/views/question/index");
@@ -17,9 +17,9 @@ const routes = [
         component: Home
     },
     {
-        path:'/courses',
+        path:'/course',
         name:'课程中心',
-        component: Courses
+        component: CourseList
     },
     {
         path:'/courseDetail',

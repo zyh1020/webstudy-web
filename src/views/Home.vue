@@ -62,7 +62,7 @@
             HomeCourseContainer
         },
         created() {
-            window.sessionStorage.setItem("token","eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImNyZWF0ZWQiOjE2MTg2NTMyNjM0OTgsImV4cCI6MTYxODczOTY2M30.L6swEu2URiod_RW004qAhn345IhiyWMkR_xZ6gS_j_FAX5W_0IZVO4-vkcHX32REzbxp76JCd3rL-LJw-71jdw");
+            window.sessionStorage.setItem("token","eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImNyZWF0ZWQiOjE2MTk2MDI4MjI1MzgsImV4cCI6MTYxOTY4OTIyMn0.bjw1qgdNoLMmAe-TGWc-X0OyQmcH6da9mRi63HjvzIbU3Skxh5W8Gqao8QdqeHnsYAW4NYSqeft0WRKGxVkpTw");
         }
     }
 </script>

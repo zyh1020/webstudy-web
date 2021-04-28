@@ -65,10 +65,13 @@
                    <!-- <empty v-else message="暂无相关猿问数据"></empty>-->
                     <!-- 分页 -->
                     <el-pagination
-                            class = "footerPage"
+                            style="margin: 30px auto"
                             background
                             layout="prev, pager, next"
-                            :total="1000">
+                            :current-page="page"
+                            :page-size="limit"
+                            :total="total"
+                            @current-change="pageChange">
                     </el-pagination>
                 </div>
 
@@ -113,6 +116,9 @@
         name: "index",
         data(){
             return{
+                page:1,
+                limit:5,
+                total: 20,
                 addProblemDialogVisible: false, //添加问题对话框
                 allSorts:[], // 分类列表
                 sortList:[], // 筛选后的分类列表
@@ -147,35 +153,35 @@
                     answers: 3,
                     title:'Chrome59到底支不支持forEach函数？',
                     icon:'https://img.mukewang.com/59e96f340001faac02400240.jpg',
-                    tags:['js','html'],
+                    tags:['js'],
                     views: 30
                 },{
                     isResolve:true,
                     answers: 3,
                     title:'Chrome59到底支不支持forEach函数？',
                     icon:'https://img.mukewang.com/59e96f340001faac02400240.jpg',
-                    tags:['js','html'],
+                    tags:['js'],
                     views: 30
                 },{
                     isResolve:true,
                     answers: 3,
                     title:'Chrome59到底支不支持forEach函数？',
                     icon:'https://img.mukewang.com/59e96f340001faac02400240.jpg',
-                    tags:['js','html'],
+                    tags:['js'],
                     views: 30
                 },{
                     isResolve:true,
                     answers: 3,
                     title:'Chrome59到底支不支持forEach函数？',
                     icon:'https://img.mukewang.com/59e96f340001faac02400240.jpg',
-                    tags:['js','html'],
+                    tags:['js'],
                     views: 30
                 },{
                     isResolve:true,
                     answers: 3,
                     title:'Chrome59到底支不支持forEach函数？',
                     icon:'https://img.mukewang.com/59e96f340001faac02400240.jpg',
-                    tags:['js','html'],
+                    tags:['js'],
                     views: 30
                 }] // 问题列表
             }
