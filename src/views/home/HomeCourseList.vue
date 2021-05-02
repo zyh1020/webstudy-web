@@ -8,24 +8,25 @@
     >
       <div class="img-box">
         <!-- 图片 -->
-        <img :src="item.img" alt="">
+        <img :src="item.courseCover" alt="">
         <!-- 标签 -->
-        <div v-if="item.labels && item.labels.length > 0" class="tags">
-          <span v-for="(label, index) in item.labels" :key="index" class="tag-item">{{ label }}</span>
+        <div class="tags">
+          <span class="tag-item">{{item.sortParentName }}</span>
+          <span class="tag-item">{{item.sortName }}</span>
         </div>
       </div>
       <p class="course-name">
         {{ item.title }}
       </p>
       <p class="info">
-        <span>实战</span>
+        <span>学习</span>
         <span>
           <i class="el-icon-user-solid"></i>
-          {{ item.persons }}
+          {{ item.studyPersonNum }}
         </span>
         <span>
           <!-- 评分 -->
-          <el-rate v-model="value" class="star-box" disabled></el-rate>
+          <el-rate v-model="item.difficulty" class="star-box" disabled></el-rate>
         </span>
       </p>
     </li>
@@ -43,13 +44,15 @@ export default {
   },
   data(){
     return{
-      value: 5
+
     }
   },
   methods: {
     // 课程点击事件
     handleCourseClick () {
-      this.$router.push(`/lesson`)
+      this.$router.push({
+        path:'/courseDetail',
+        query:{ courseId:1 }})
     }
   }
 }

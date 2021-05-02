@@ -23,16 +23,10 @@
         </div>
 
         <!-- 用户/ 注册登录-->
-        <ul class="login-area" >
-            <li class="item sign">
-                <span class="sign-btn" @click="handleLoginClick">登录</span> /
-                <span class="sign-btn" @click="handleRegisterClick">注册</span>
-            </li>
-        </ul>
-        <div class="user" v-if="false">
+        <div class="user" v-if="user">
             <el-dropdown class="userInfo" @command="handleCommand">
                     <span class="el-dropdown-link userName">
-                      {{user.username}}
+                      {{user.name}}
                         <i><img :src="user.userAvatar"></i>
                     </span>
                 <template #dropdown>
@@ -43,17 +37,79 @@
                 </template>
             </el-dropdown>
         </div>
+        <ul class="login-area" v-else>
+            <li class="item sign">
+                <span class="sign-btn" @click="handleLoginClick">登录</span> /
+                <span class="sign-btn" @click="handleRegisterClick">注册</span>
+            </li>
+        </ul>
 
+
+        <!-- 弹出框 -->
+        <el-dialog
+                :visible.sync="loginDialogVisible"
+                width="30%"
+                append-to-body>
+                <el-tabs v-model="activeName" type="card">
+                    <el-tab-pane label="登录" name="login">
+                        <el-form ref="loginVo" :model="loginVo" label-width="80px">
+                            <el-form-item label="手机号:">
+                                <el-input v-model="loginVo.username" placeholder="请输入手机号"></el-input>
+                            </el-form-item>
+                            <el-form-item label="密码:">
+                                <el-input v-model="loginVo.password" placeholder="请输入密码" show-password></el-input>
+                            </el-form-item>
+                            <el-form-item label="验证码:">
+                                <el-input v-model="loginVo.code" placeholder="验证码" style="width: 50%"></el-input>
+                                <el-button @click="sendCode" style="margin-left:30px;width: 30%" :disabled="sendCodeDisabled">{{msg}}</el-button>
+                            </el-form-item>
+                        </el-form>
+                    </el-tab-pane>
+                    <el-tab-pane label="注册" name="register">
+                        <el-form ref="form" :model="registerVo" label-width="80px">
+                            <el-form-item label="手机号">
+                                <el-input v-model="registerVo.name"></el-input>
+                            </el-form-item>
+                            <el-form-item label="昵称">
+                                <el-input v-model="registerVo.name"></el-input>
+                            </el-form-item>
+                            <el-form-item label="密码">
+                                <el-input v-model="registerVo.name"></el-input>
+                            </el-form-item>
+                            <el-form-item label="验证码">
+                                <el-input v-model="registerVo.name" style="width: 50%"></el-input>
+                                <el-input type="button" @click="sendCode" v-model="msg"  style="margin-left:30px;width: 30%" :disabled="sendCodeDisabled"/>
+                            </el-form-item>
+                        </el-form>
+                    </el-tab-pane>
+                </el-tabs>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="loginDialogVisible = false">取 消</el-button>
+                <el-button type="primary" @click="userLoginOrRegister">确 定</el-button>
+            </span>
+        </el-dialog>
     </div>
 </template>
 
 <script>
+    import {userLogin,userInfo} from '@/api/user/user'
     export default {
         name: "Header",
         data(){
             return {
+                loginDialogVisible:false,
+                activeName:'login',
+                loginVo:{ // 登录对象
+                    username:'17633837738',
+                    password:'123456'
+                },
+                registerVo:{ // 注册对象
+                },
+                msg:'发送验证码',
+                sendCodeDisabled: false,// 禁止发送验证码？
+                countdown: 60,// 倒计时秒数
                 list:[{
-                    path: '/courses',
+                    path: '/course',
                     title: '课程中心'
                 },{
                     path: '/question',
@@ -62,25 +118,81 @@
                     path: '/article',
                     title: '文章中心'
                 }],
-                user:{
-                    username:'zyh',
-                    userAvatar:'https://img3.sycdn.imooc.com/5a5d1f3a0001cab806380638-140-140.jpg'
-                }
-
+                user:null
             }
         },
         methods:{
             // 登录
             handleLoginClick(){
-
+                this.activeName = 'login';
+                this.loginDialogVisible = true;
             },
             // 注册
             handleRegisterClick(){
-
+                this.activeName = 'register';
+                this.loginDialogVisible = true;
+            },
+            // 发送验证码
+            sendCode(){
+                // 验证码60秒倒计时
+                if (!this.timer) {
+                    this.timer = setInterval(() => {
+                        if (this.countdown > 0 && this.countdown <= 60) {
+                            this.countdown--;
+                            if (this.countdown !== 0) {
+                                this.sendCodeDisabled = true;
+                                this.msg = "重新发送(" + this.countdown + ")";
+                            } else {
+                                clearInterval(this.timer);
+                                this.msg = "获取验证码";
+                                this.countdown = 60;
+                                this.timer = null;
+                                this.sendCodeDisabled = false;
+                            }
+                        }
+                    }, 1000)
+                }
+            },
+            userLoginOrRegister(){ // 用户登录用户注册
+                if(this.activeName === 'login'){ // 登录
+                    this.userLogin();
+                }else if(this.activeName === 'register'){ // 注册
+                    this.userRegister();
+                }
+                this.loginDialogVisible = false;
+            },
+            userLogin(){ // 登录
+                userLogin(this.loginVo).then(response => {
+                    if (response){
+                        let token = response.data;
+                        if(token){
+                            window.sessionStorage.setItem("token",token);
+                            this.getUserInfo();// 获取用户信息
+                        }
+                    }
+                })
+            },
+            userRegister(){ // 注册
+            },
+            getUserInfo(){
+                userInfo().then(response => {
+                    this.user = response.data;
+                })
             },
             // 头像选中
-            handleCommand(){
-
+            handleCommand(value){
+                if(value == "logout"){ // 退出登录
+                    this.user = null; //
+                    window.sessionStorage.clear(); // 清空信息
+                }
+            }
+        },
+        created() {
+            // ①，获取用户
+            let token = window.sessionStorage.getItem("token");
+            console.log(token);
+            if(token){ // 用户登录了
+                this.getUserInfo();
             }
         }
     }

@@ -11,18 +11,20 @@
             <nav-bottom-course/>
         </div>
         <!--  实战导航 -->
-        <home-course-container :list="lessonData.recommend" title="实／战／推／荐" type="recommend" :position="0" />
+
+        <home-course-container :list="recommend" title="实／战／推／荐" type="recommend" :position="0" />
         <!-- 新上好课 -->
-        <home-course-container :list="lessonData.recommend" title="新／上／好／课" type="new" :position="1" />
+        <home-course-container :list="newcourse" title="新／上／好／课" type="new" :position="1" />
         <!-- 新手入门 -->
-        <home-course-container :list="lessonData.recommend" title="新／手／入／门" type="easy" :position="2" />
+        <home-course-container :list="easy" title="新／手／入／门" type="easy" :position="2" />
         <!-- 技能提升 -->
-        <home-course-container :list="lessonData.recommend" title="技／能／提／升" type="improve" :position="3" />
+        <home-course-container :list="improve" title="火／爆／课／程" type="improve" :position="3" />
         <!-- 前言技术 -->
-        <home-course-container :list="lessonData.recommend" title="前／沿／技／术" type="advanced" :position="4" />
+        <home-course-container :list="advanced" title="前／沿／技／术" type="advanced" :position="4" />
     </div>
 </template>
 <script>
+    import {findCourses} from '@/api/course/courseInfo'
     import NavLeftSide from './home/NavLeftSide'
     import NavBottomCourse from './home/NavBottomCourse'
     import NavBanner from './home/NavBanner'
@@ -31,28 +33,12 @@
         name: 'Home',
         data(){
           return{
-              lessonData:{
-                  recommend:[
-                      {
-                          img:'https://img.mukewang.com/szimg/5d36a6000837a91d06000338-360-202.jpg',
-                          process: 2,
-                          title: '标题标题标题标题标题标题标题标题标题标题标题标题',
-                          labels:['标签1','标签2'],
-                          persons: 3,
-                      },{
-                          img:'https://img.mukewang.com/szimg/5d36a6000837a91d06000338-360-202.jpg',
-                          process: 2,
-                          title: '标题',
-                          labels:['标签1','标签2'],
-                          persons: 3,
-                      },{
-                          img:'https://img.mukewang.com/szimg/5d36a6000837a91d06000338-360-202.jpg',
-                          process: 2,
-                          title: '标题',
-                          persons: 3,
-                      }
-                  ]
-              }
+              recommend:[],
+              newcourse:[],
+              easy:[],
+              improve:[],
+              advanced:[]
+
           }
         },
         components: {
@@ -61,9 +47,39 @@
             NavBanner,
             HomeCourseContainer
         },
+        methods:{
+            // 查询课程
+            initPage(){
+                findCourses('recommend',5).then(response => {
+                    if(response){
+                        this.recommend = response.data;
+                    }
+                });
+                findCourses('new',10).then(response => {
+                    if(response){
+                        this.newcourse = response.data;
+                    }
+                });
+                findCourses('easy',5).then(response => {
+                    if(response){
+                        this.easy = response.data;
+                    }
+                });
+                findCourses('improve',8).then(response => {
+                    if(response){
+                        this.improve = response.data;
+                    }
+                });
+                findCourses('advanced',10).then(response => {
+                    if(response){
+                        this.advanced = response.data;
+                    }
+                });
+            }
+        },
         created() {
-            window.sessionStorage.setItem("token","eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImNyZWF0ZWQiOjE2MTk2MDI4MjI1MzgsImV4cCI6MTYxOTY4OTIyMn0.bjw1qgdNoLMmAe-TGWc-X0OyQmcH6da9mRi63HjvzIbU3Skxh5W8Gqao8QdqeHnsYAW4NYSqeft0WRKGxVkpTw");
-        }
+            this.initPage();
+         }
     }
 </script>
 

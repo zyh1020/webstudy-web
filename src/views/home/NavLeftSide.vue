@@ -1,46 +1,103 @@
 <template>
   <div class="home-nav-container">
+    <!-- 导航 -->
     <ul class="home-nav" @mouseleave="handleMouseLeave">
       <li
-        v-for="(item,index) in navList"
+        v-for="(oneSort,index) in oneLevelSort"
         :key="index"
         class="nav-item"
-        @mouseenter="handleMouseEnter(item)"
+        @mouseenter="handleMouseEnter(oneSort)"
       >
-        <span class="nav-title">{{ item.title }}</span>
+        <span class="nav-title">{{ oneSort.name }}</span>
         <span class="arr-right" />
       </li>
     </ul>
+    <!-- hover 浮现-->
     <div
       @mouseenter="handleContentEnter"
       @mouseleave="handleContentLeave"
     >
-      <!--<nav-content v-show="showNavContent" :tags="currentTags" :lessons="currentLessons" />-->
-      <nav-left-hover-main v-show="showNavContent"/>
+      <div class="nav-content" v-show="showNavContent">
+        <div class="tags">
+          <div  class="tags-item">
+            <h2 class="title-box">
+              <span class="title">{{currentOneLeveSort.name}}</span>
+              <span class="line" />
+            </h2>
+            <ul class="list">
+              <li
+                      v-for="(towSort, index) in currentTwoLevelSort"
+                      :key="index"
+                      class="tag"
+                      @click="clickSort(towSort)"
+              >
+                {{ towSort.name }}
+              </li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
     </div>
   </div>
 </template>
 <script>
-import NavLeftHoverMain from './NavLeftHoverMain.vue'
+import {getAllCategoryList} from '@/api/sort/category'
 
 export default {
   data () {
     return {
-      navList: [],
-      currentTags: [],
-      currentLessons: [],
+      allSorts:[], // 所有分类
+      oneLevelSort:[],// 一级分类
+      twoLevelSort:[],// 二级分类
+      currentOneLeveSort:{}, // 当前一级分类
+      currentTwoLevelSort:[], // 当前二级分类
       showNavContent: false
+
     }
   },
-  mounted () {
-    this.getHomeNavList()
-  },
+
   methods: {
+    // 获取分类列表
+    getSortList(){
+      getAllCategoryList().then(response => {
+        if(response){
+          this.allSorts = response.data;
+          // 筛选分类列表
+          this.getScreenSortList()
+        }
+      })
+    },
+    // 筛选分类列表
+    getScreenSortList(){
+      this.oneLevelSort = [];
+      this.twoLevelSort = [];
+      for(let sort of this.allSorts){
+        if(sort.level == 1){
+          this.oneLevelSort.push(sort);
+        }
+        if(sort.level == 2){
+          this.twoLevelSort.push(sort);
+        }
+      }
+    },
+    // 点击分类
+    clickSort(sort){
+      this.$router.replace({
+        path:"/course",
+        query:{ sortId:sort.id}
+      })
+    },
     // 导航鼠标移入
-    handleMouseEnter (item) {
+    handleMouseEnter (sort) {
       this.showNavContent = true;
-      this.currentTags = item.tags;
-      this.currentLessons = item.lessons;
+      this.currentTwoLevelSort = [];
+      this.currentOneLeveSort = sort;
+      for(let sortItem of this.twoLevelSort){ // 遍历所有的二级分类
+        if(sortItem.parentId == sort.id){ // 是一级分类的子分类
+          this.currentTwoLevelSort.push(sortItem);
+        }
+      }
     },
     // 导航鼠标移除
     handleMouseLeave () {
@@ -54,39 +111,58 @@ export default {
     },
     // 导航内容鼠标移除
     handleContentLeave () {
-      this.showNavContent = false
-      this.currentTags = []
-      this.currentLessons = []
+      this.showNavContent = false;
     },
-    // 获取首页导航信息
-    getHomeNavList () {
-          let navs = [{
-              title: '1111111',
-              tags:'tag1111',
-              currentLessons:'currentLessons111111111'
-          },{
-            title: '222222',
-            tags:'tag222',
-            currentLessons:'currentLessons222'
-          },{
-            title: '33333',
-            tags:'tag3333',
-            currentLessons:'currentLessons33333'
-          }];
 
-          this.navList = navs;
-          this.currentTags = ['tags111','tags222'];
-          this.currentLessons = ['lesssons111','lesssons222'];
-
-    }
   },
-  components: {
-    NavLeftHoverMain
+  created() {
+      // 获取分类列表
+      this.getSortList();
   }
+
 }
 </script>
 
 <style lang="stylus" scoped>
+
+  .nav-content
+    z-index: 100;
+    position: absolute;
+    top: 0;
+    left: 216px;
+    width: 768px;
+    height: 444px;
+    background-color: #fff;
+    .tags
+      position: relative;
+      padding: 36px 48px 32px;
+      .tags-item
+        .title-box
+          display: flex;
+          align-items: center;
+          margin-bottom: 20px;
+          color:  #f01414;
+          font-size: 14px;
+          line-height: 24px;
+          font-weight: 700;
+          .title
+            margin-right: 20px;
+          .line
+            flex: 1;
+            height: 1px;
+            background-color: #eff1f0;
+        .list
+          .tag
+            display: inline-block;
+            margin-right: 16px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            color: #4d555d;
+            cursor: pointer;
+            &:hover
+              color:  #f01414;
+
+  /* */
   .home-nav-container
     position: relative;
     width: 216px;

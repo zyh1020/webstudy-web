@@ -2,25 +2,35 @@
     <div class="webCarousel">
         <el-carousel indicator-position="outside">
             <el-carousel-item v-for="(item,index) in swiperList" :key="index+''">
-                <img :src="item.img" class="swiperImg">
+                <img :src="item.imgUrl" class="swiperImg">
             </el-carousel-item>
         </el-carousel>
     </div>
 </template>
 
 <script>
+    import {getAllBanners} from '@/api/banner/banner'
     export default {
         name: "Carousel",
         data(){
             return {
-                swiperList: [{
-                    img:'https://img.mukewang.com/5d1e0a1800013ca916000540.jpg'
-                },{
-                    img:'https://img.mukewang.com/5d1e0a1800013ca916000540.jpg'
-                },{
-                    img:'https://img.mukewang.com/5d1e0a1800013ca916000540.jpg'
-                }],
+                swiperList: [],
             }
+        },
+        methods:{
+            findAllBanners(){
+                getAllBanners().then(response => {
+                    if(response){
+                        this.swiperList = response.data;
+                    }
+                })
+            }
+
+        },
+        created() {
+            // 查询所有的banner
+            this.findAllBanners();
+
         }
 
     }

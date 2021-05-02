@@ -15,3 +15,11 @@ export function findCourseList(current,limit,orderBy,course){ // 查询课程列
         data:course
     });
 }
+
+
+export function findCourses(type,limit) { // 查询课程信息
+    return request({
+        url: `/cou/info/findCourses/${type}/${limit}`,
+        method: 'get'
+    });
+}

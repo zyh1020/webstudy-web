@@ -7,8 +7,8 @@
                 <!--<img src="https://www.imooc.com/static/img/course/course-top.png" width="80%" height="60" alt="">-->
             </div>
             <div class="search-wrapper">
-                <input type="text" placeholder="搜索感兴趣的内容" @focus="isFocus=true" @blur="isFocus=false">
-                <i class="iconfont el-icon-search"></i>
+                <input type="text" v-model="courseFile.title" placeholder="搜索感兴趣的内容" @focus="isFocus=true" @blur="isFocus=false">
+                <i class="iconfont el-icon-search" @click="searchCourses"></i>
                 <ul v-if="isFocus" class="search-result">
                     <li v-for="(item,index) in result" :key="index" class="result-item">
                         {{ item}}
@@ -67,7 +67,7 @@
             </div>
 
             <!-- 课程列表 -->
-            <ul v-if="courseList.length" class="course-list">
+            <ul v-if="courseList && courseList.length" class="course-list">
                 <li v-for="(item,index) in courseList" :key="index" class="list-item" @click="handleCourseClick(item)">
                     <div class="img-box">
                         <img :src="item.courseCover" alt="">
@@ -128,7 +128,7 @@
                 diffList: [], // 难度数据列表
                 diffId:0,// 当前难度
                 isFocus: false,
-                result: ['热门搜索','热门搜索','热门搜索'], // 热词
+                result: ['java','Spring','mysql'], // 热词
                 isHide: false,
                 filterList: [], // 排序方式
                 orderBy: -1, // 当前排序方式
@@ -139,15 +139,15 @@
                     difficulty:null,
                     title:null
                 }, // 查询课程条件
-                page:0, // 当前页
+                page:1, // 当前页
                 limit:10, // 多少页
                 total:0 // 总记录
             }
         },
         methods: {
             // 获取分类列表
-            getSortList(){
-                getAllCategoryList().then(response => {
+           async getSortList(){
+                await getAllCategoryList().then(response => {
                     if(response){
                         this.allSorts = response.data;
                         // 筛选分类列表
@@ -174,9 +174,8 @@
             // 排序方式点击
             handleFilterClick (item) {
                 this.orderBy = item.code;
-                if(this.orderBy == -1){
-                    // 默认排序
-                }
+                // 重新获取课程列表
+                this.findPageCourseList();
             },
             // 课程点击事件
             handleCourseClick (lesson) {
@@ -186,6 +185,7 @@
             },
             // 点击一级分类
             OneLevelSortClick (sort) {
+                this.page = 1;
                 this.oneLevelSortId = sort.id;
                 this.twoLevelSortId = 0;
                 this.currentTwoLevelSort = [];
@@ -202,27 +202,46 @@
                         }
                     }
                 }
+                // 重新获取课程列表
+                this.findPageCourseList();
 
 
             },
-            pageChange(){
-
+            // 搜索课程
+            searchCourses(){
+                this.page = 1;
+                // 重新获取课程列表
+                this.findPageCourseList();
+            },
+            // 分页
+            pageChange(page){
+                // 当前页
+                this.page = page;
+                // 重新获取课程列表
+                this.findPageCourseList();
             },
             // 点击二级分类赛选课程
             twoLevelSortClick(sort){
+                this.page = 1;
                 // 二级分类id
                 this.twoLevelSortId = sort.id;
                 // 一级分类id
                 if(sort.name != "全部"){
                     this.oneLevelSortId = sort.parentId;
                 }
+                // 重新获取课程列表
+                this.findPageCourseList();
             },
             // 点击难度
             difficultyClick(diff){
+                this.page = 1;
                 this.diffId = diff.id;
+                // 重新获取课程列表
+                this.findPageCourseList();
             },
             // 查询课程列表
             findPageCourseList(){
+
                 if(this.oneLevelSortId == 0){
                     this.courseFile.sortParentId = null;
                 }else{
@@ -236,13 +255,31 @@
                 if(this.diffId == 0){
                     this.courseFile.difficulty = null;
                 }else{
-                    this.courseFile.difficulty = this.twoLevelSortId;
+                    this.courseFile.difficulty = this.diffId;
                 }
                 findCourseList(this.page,this.limit,this.orderBy,this.courseFile).then(response =>{
                     if(response){
                         this.courseList = response.data.courses;
+                        this.total = response.data.total;
                     }
                 })
+            },
+            // 初始化数据
+            async initPage(){
+                // 获取分类列表
+                await this.getSortList();
+                // 设置 一级分类id
+                if(this.$route.query != null && this.$route.query.sortId != null){
+                    this.twoLevelSortId = this.$route.query.sortId;
+                    // 遍历查询父id
+                    for(let sort of this.twoLevelSort){
+                        if(sort.id == this.twoLevelSortId){
+                            this.oneLevelSortId = sort.parentId;
+                        }
+                    }
+                }
+                // 查询课程列表
+                this.findPageCourseList();
             }
         },
         created () {
@@ -258,10 +295,7 @@
                 { name: '中级', id: 3 },
                 { name: '高级', id: 4 }
             ];
-            // 获取分类列表
-            this.getSortList();
-            // 查询课程列表
-            this.findPageCourseList();
+            this.initPage();
         }
     }
 </script>
