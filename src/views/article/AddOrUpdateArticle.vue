@@ -22,7 +22,7 @@
                            </el-switch>
                        </el-form-item>
                        <el-form-item>
-                           <el-button type="success"  size="small" @click="addOrArticle">保存</el-button>
+                           <el-button type="success"  size="small" @click="addOrUpdateArticle">保存</el-button>
                        </el-form-item>
                    </el-row>
 
@@ -40,7 +40,7 @@
 <script>
     import TinymceEditor from '@/components/tinymce';
     import {getAllCategoryList} from '@/api/sort/category'
-    import {addAnswer} from '@/api/article/article'
+    import {addArticle,updateArticle,getArticleById} from '@/api/article/article'
     export default {
         name: "AddOrUpdateArticle",
         components: { //注册TinymceEditor组件
@@ -48,6 +48,7 @@
         },
         data(){
             return{
+                currentaAritcleId:null,
                 allSorts:[], // 分类列表
                 sortList:[], // 筛选后的分类列表
                 article: {
@@ -61,16 +62,29 @@
         },
         methods:{
             addArticle(){ // 添加文章
-                addAnswer(this.article).then(response => {
+                addArticle(this.article).then(response => {
                     if(response){
                         // 跳转到文章列表页。
                         this.$router.replace("/article")
                     }
                 })
             },
-            addOrArticle(){ // 添加或修改文章
+            updateArticle(){ // 修改文章
+                updateArticle(this.article).then(response => {
+                    if(response){
+                        // 跳转到文章列表页。
+                        this.$router.replace({
+                                                path:"/person",
+                                                query:{
+                                                    activeId:'articles'
+                                                }
+                                            })
+                    }
+                })
+            },
+            addOrUpdateArticle(){ // 添加或修改文章
                 if(this.article.id){ // 修改
-
+                    this.updateArticle();
                 }else{ // 添加
                     this.addArticle();
                 }
@@ -94,11 +108,25 @@
                         this.sortList.push(sort);
                     }
                 }
+            },
+            // 查询文章详情
+            getOneArticel(){
+                getArticleById(this.currentaAritcleId).then(response=>{
+                        if(response){
+                            this.article = response.data;
+                        }
+                });
             }
         },
         created() {
             // 获取分类列表
             this.getSortList();
+            // 判断是否需要查询数据
+            if(this.$route.query != null && this.$route.query.articleId != null){
+                this.currentaAritcleId = this.$route.query.articleId;
+                // 查询文章详情
+                this.getOneArticel();
+            }
         }
     }
 </script>

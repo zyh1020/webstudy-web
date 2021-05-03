@@ -2,16 +2,16 @@
     <div class="header">
         <!-- logo -->
         <div class="logo-box">
-            <router-link to="/">
-                <img src="https://www.imooc.com/static/img/index/logo.png" height="72" alt="Logo">
-            </router-link>
+            <div class="logo" @click="toHome">
+                web学习交流
+            </div>
         </div>
         <!-- 导航 -->
         <ul class="header-nav">
-            <li v-for="(item,index) in list" :key="index" class="nav-item">
-                <router-link :to="item.path" class="nav-link">
-                    {{ item.title }}
-                </router-link>
+            <li v-for="(nav,index) in list" :key="index" class="nav-item" @click="toPath(nav)">
+                <div class="nav-link">
+                    <span :class="nav.path == currentPath ? 'redFondColor':''">{{ nav.title }}</span>
+                </div>
             </li>
         </ul>
         <!-- 搜索框 -->
@@ -108,6 +108,7 @@
                 msg:'发送验证码',
                 sendCodeDisabled: false,// 禁止发送验证码？
                 countdown: 60,// 倒计时秒数
+                currentPath: "/",
                 list:[{
                     path: '/course',
                     title: '课程中心'
@@ -122,6 +123,16 @@
             }
         },
         methods:{
+            // 跳转到首页
+            toHome(){
+                this.currentPath = '/';
+                this.$router.replace("/");
+            },
+            // 导航跳转
+            toPath(nav){
+                this.currentPath = nav.path;
+                this.$router.replace(nav.path);
+            },
             // 登录
             handleLoginClick(){
                 this.activeName = 'login';
@@ -184,10 +195,18 @@
                 if(value == "logout"){ // 退出登录
                     this.user = null; //
                     window.sessionStorage.clear(); // 清空信息
+                }else if(value == "personal"){
+                    this.$router.replace({path:"/person",query:{
+                            activeId:"personal"
+                    }
+                })
                 }
             }
         },
         created() {
+            // 当前路由
+            let path = window.location.href;
+            this.currentPath = path.substring(path.lastIndexOf("/"));
             // ①，获取用户
             let token = window.sessionStorage.getItem("token");
             console.log(token);
@@ -198,7 +217,17 @@
     }
 </script>
 <style lang="stylus" scoped>
-
+    .redFondColor{
+        color: red;
+    }
+    .logo{
+        width: 180px;
+        height: 72px;
+        font-size: 20px;
+        line-height: 72px;
+        text-align center;
+        color: black;
+    }
     .el-autocomplete{
         width:350px;
     }
@@ -263,6 +292,10 @@
     .nav-item{
         float: left;
         margin-left: 20px;
+    }
+    .nav-item :hover{
+        color: red;
+        cursor:pointer
     }
     .nav-link{
         display: block;

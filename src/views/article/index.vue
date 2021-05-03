@@ -38,7 +38,7 @@
                                 <img :src="article.sysUser.userAvatar" alt="">
                             </div>
                             <div class="content">
-                                <p class="title">
+                                <p class="title" @click="toArticle(article)">
                                     {{ article.articleTitle }}
                                 </p>
                                 <p class="information">
@@ -109,6 +109,10 @@
         methods: {
             showAddArticle(){ // 路由跳转到添加文章界面
                 this.$router.push("/addOrUpdteArticle");
+            },
+            // 跳转到文章详情界面
+            toArticle(article){
+                this.$router.push({path:"/articleDetail",query:{articleId:article.id}});
             },
             // 获取分类列表
             getSortList(){

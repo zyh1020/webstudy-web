@@ -5,25 +5,25 @@
             <div class="question-search">
                 <img src="https://www.imooc.com/static/img/wenda/wenda-logo.png" alt="">
                 <div class="search-box">
-                    <input type="text" placeholder="请输入你的问题">
-                    <i class="iconfont el-icon-search"></i>
+                    <input type="text" v-model="problemTitle" placeholder="请输入你的问题">
+                    <i class="iconfont el-icon-search" @click="searchQuestion"></i>
                 </div>
                 <div class="search-btn" @click="showAddProblemDialog">
                     提问
                 </div>
             </div>
-            <div v-if="userInfo.id" class="question-nav">
+            <div class="question-nav">
                 <dl>
                     <dt>问题分类：</dt>
                     <dd
-                            v-for="(item, index) in followList"
+                            v-for="(item, index) in sortList"
                             :key="index"
                             :class="{
-                                    active: currentIndex == index
+                                    active: item.id == sortId
                              }"
-                            @click="handleLikeClick(item, index)"
+                            @click="handleLikeClick(item)"
                     >
-                        {{ item.title }}
+                        {{ item.name }}
                     </dd>
                 </dl>
             </div>
@@ -37,27 +37,22 @@
                         <li v-for="(item, index) in questionList" :key="index" class="question-item">
                             <div class="finish">
                                 <!-- 是否解决了 -->
-                                <span v-if="item.isResolve" class="iconfont el-icon-check"></span>
-                                <span>?</span>
+                                <span v-if="index % 2 == 0" class="iconfont el-icon-check"></span>
+                                <span v-else>?</span>
                             </div>
                             <div class="content-box">
                                 <!-- 问题的标题 -->
                                 <h3 class="title" @click="toProblemDetils(item)">
-                                    {{ item.title }}
+                                    {{ item.problemTitle }}
                                 </h3>
                                 <p class="tag">
-                                    <img src="https://img.mukewang.com/59e96f340001faac02400240.jpg" alt="">
-                                    <span
-                                            v-for="(tag, index) in item.tags"
-                                            :key="index"
-                                            class="name"
-                                    >{{ tag }}</span>
+                                    <span class="name" >分类:</span>
+                                    <span class="name" >{{ item.twoLevelSortName }}</span>
                                     <span class="view-box">
-
-                    <!-- -->
-                    <i class="iconfont el-icon-view"></i>
-                    <span class="view-number">{{ item.views }}</span>
-                  </span>
+                                      <i class="iconfont el-icon-view"></i>
+                                        &nbsp
+                                       <span class="view-number">{{ item.lookNum }}</span>
+                                    </span>
                                 </p>
                             </div>
                         </li>
@@ -86,11 +81,11 @@
                 width="40%">
             <el-form ref="form" :model="problem" label-width="85px">
                     <el-form-item label="问题标题：">
-                        <el-input v-model="problem.problemTitle"></el-input>
+                        <el-input v-model="problem.problemTitle"/>
                     </el-form-item>
                     <el-form-item label="问题分类：">
-                        <el-select v-model="problem.sortId" placeholder="请选择">
-                            <el-option :label="sort.name" :value="sort.id" v-for="(sort,index) in sortList" :key="index"></el-option>
+                        <el-select v-model="problem.sortId" placeholder="请选择分类">
+                            <el-option :label="sort.name" :value="sort.id" v-for="(sort,index) in twoLevelSorts" :key="index"></el-option>
                         </el-select>
                     </el-form-item>
                     <el-form-item label="问题描述：">
@@ -110,7 +105,7 @@
 
 <script>
     import {getAllCategoryList} from '@/api/sort/category'
-    import {addOneProblem} from '@/api/question/problem'
+    import {addOneProblem,findPageProblems} from '@/api/question/problem'
 
     export default {
         name: "index",
@@ -118,72 +113,16 @@
             return{
                 page:1,
                 limit:5,
-                total: 20,
+                total:0,
                 addProblemDialogVisible: false, //添加问题对话框
                 allSorts:[], // 分类列表
-                sortList:[], // 筛选后的分类列表
-                problem:{},
-                userInfo:{
-                  id: 'zyh'
-                },
-                dialogVisible: false, // 选择标签弹出框
-                isLoading: false, // 是否完成
-                currentIndex: 1, // 当前
-                labelList: [{
-                    title: '前端',
-                    list:[{
-                        isSelected: true,
-                        title: 'css'
-                    }]
-                },{
-                    title: '后端',
-                    list:[{
-                        isSelected: false,
-                        title: 'java'
-                    }]
-                }], // 标签内容
-                followList:[{
-                    title: '全部'
-                },{
-                    title: 'css'
-                }],// 选中的标签内容
-
-                questionList:[{
-                    isResolve:true,
-                    answers: 3,
-                    title:'Chrome59到底支不支持forEach函数？',
-                    icon:'https://img.mukewang.com/59e96f340001faac02400240.jpg',
-                    tags:['js'],
-                    views: 30
-                },{
-                    isResolve:true,
-                    answers: 3,
-                    title:'Chrome59到底支不支持forEach函数？',
-                    icon:'https://img.mukewang.com/59e96f340001faac02400240.jpg',
-                    tags:['js'],
-                    views: 30
-                },{
-                    isResolve:true,
-                    answers: 3,
-                    title:'Chrome59到底支不支持forEach函数？',
-                    icon:'https://img.mukewang.com/59e96f340001faac02400240.jpg',
-                    tags:['js'],
-                    views: 30
-                },{
-                    isResolve:true,
-                    answers: 3,
-                    title:'Chrome59到底支不支持forEach函数？',
-                    icon:'https://img.mukewang.com/59e96f340001faac02400240.jpg',
-                    tags:['js'],
-                    views: 30
-                },{
-                    isResolve:true,
-                    answers: 3,
-                    title:'Chrome59到底支不支持forEach函数？',
-                    icon:'https://img.mukewang.com/59e96f340001faac02400240.jpg',
-                    tags:['js'],
-                    views: 30
-                }] // 问题列表
+                sortList:[],// 筛选问题的分类列表
+                twoLevelSorts:[], // 所有的二级分类
+                sortId:-1,//当前选中的分类id
+                problemTitle:'',// 当前问题标题
+                problem:{}, // 添加问题
+                problemFilter:{sortId:null,problemTitle:null},// 筛选问题条件
+                questionList:[] // 问题列表
             }
         },
         methods:{
@@ -200,22 +139,31 @@
             // 筛选分类列表
             getScreenSortList(){
                 this.sortList = [];
+                this.sortList.push({name:'全部',id:-1});
+                this.twoLevelSorts = [];
                 for(let sort of this.allSorts){
-                    if(sort.level == 1){
+                    if(sort.level == 2){
+                        this.twoLevelSorts.push(sort);
                         this.sortList.push(sort);
                     }
                 }
             },
+            // 点击问题
             toProblemDetils(problem){
-                console.log(problem);
                 this.$router.push({
                     path:'/questionDetail',
-                    query:{ problemId: 1}
+                    query:{ problemId: problem.id}
                 })
+            },
+            // 改变分页
+            pageChange(pageNum){
+                this.page = pageNum;
+                // 重新获取问题列表
+                this.getPageProblems();
             },
             // 添加问题对话框
             async showAddProblemDialog(){
-                if(this.sortList.length <= 0){
+                if(this.twoLevelSorts.length <= 0){
                   await this.getSortList();
                 }
                 this.addProblemDialogVisible = true;
@@ -226,13 +174,47 @@
                     if(response){
                         // 从新获取数据
                         this.addProblemDialogVisible = false;
+                        // 重新获取问题列表
+                        this.getPageProblems();
                     }
                 })
             },
+            // 点击搜索问题
+            searchQuestion(){
+                this.page = 1;
+                // 重新获取问题列表
+                this.getPageProblems();
+            },
             // 更改标签类型
-            handleLikeClick(item, index){
-
+            handleLikeClick(item){
+                this.sortId = item.id;
+                this.page = 1;
+                // 重新获取问题列表
+                this.getPageProblems();
+            },
+            // 获取问题列表
+            getPageProblems(){
+                this.problemFilter.sortId = null;
+                this.problemFilter.title = '';
+                if(this.sortId != -1){
+                    this.problemFilter.sortId = this.sortId;
+                }
+                if(this.problemTitle.trim() != ''){
+                    this.problemFilter.problemTitle = this.problemTitle;
+                }
+                findPageProblems(this.page,this.limit,this.problemFilter).then( response => {
+                    if(response){
+                        this.questionList = response.data.problems;
+                        this.total = response.data.total;
+                    }
+                });
             }
+        },
+        created() {
+            // 查询所有分类
+            this.getSortList();
+            // 获取问题列表
+            this.getPageProblems();
         }
     }
 </script>

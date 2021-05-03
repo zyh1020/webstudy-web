@@ -192,7 +192,7 @@ export default {
     },
   },
   mounted () {
-    // ②，判断是否需要查询数据
+    // 判断是否需要查询数据
     if(this.$route.query != null && this.$route.query.courseId != null){
       this.currentCourseId = this.$route.query.courseId;
       this.initData();

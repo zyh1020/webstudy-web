@@ -4,9 +4,11 @@ const Home = () => import("@/views/Home");
 const CourseList = () => import("@/views/course/CourseList");
 const CourseDetail = () => import("@/views/course/CourseDetatil");
 const Article = () => import("@/views/article/index");
+const ArticleDetail = () => import("@/views/article/ArticleDetail");
 const Question = () => import("@/views/question/index");
 const QuestionDetail = () => import("@/views/question/ProblemDetail");
 const AddOrUpdateArticle = () => import("@/views/article/AddOrUpdateArticle");
+const Person = () => import("@/views/person/Person");
 
 Vue.use(VueRouter);
 
@@ -32,6 +34,11 @@ const routes = [
         component: Article
     },
     {
+        path:'/articleDetail',
+        name:'文章详情',
+        component: ArticleDetail
+    },
+    {
         path:'/question',
         name:'问题',
         component: Question
@@ -46,6 +53,11 @@ const routes = [
         path:'/addOrUpdteArticle',
         name:'添加文章',
         component: AddOrUpdateArticle
+    },
+    {
+        path:'/person',
+        name:'个人中心',
+        component: Person
     }
 ];
 const router = new VueRouter({
