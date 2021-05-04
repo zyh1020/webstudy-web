@@ -68,16 +68,16 @@
                     <el-tab-pane label="注册" name="register">
                         <el-form ref="form" :model="registerVo" label-width="80px">
                             <el-form-item label="手机号">
-                                <el-input v-model="registerVo.name"></el-input>
+                                <el-input v-model="registerVo.phone"></el-input>
                             </el-form-item>
                             <el-form-item label="昵称">
                                 <el-input v-model="registerVo.name"></el-input>
                             </el-form-item>
                             <el-form-item label="密码">
-                                <el-input v-model="registerVo.name"></el-input>
+                                <el-input v-model="registerVo.password" show-password></el-input>
                             </el-form-item>
                             <el-form-item label="验证码">
-                                <el-input v-model="registerVo.name" style="width: 50%"></el-input>
+                                <el-input v-model="registerVo.code" style="width: 50%"></el-input>
                                 <el-input type="button" @click="sendCode" v-model="msg"  style="margin-left:30px;width: 30%" :disabled="sendCodeDisabled"/>
                             </el-form-item>
                         </el-form>
@@ -92,7 +92,7 @@
 </template>
 
 <script>
-    import {userLogin,userInfo} from '@/api/user/user'
+    import {userLogin,userInfo,registUser} from '@/api/user/user'
     export default {
         name: "Header",
         data(){
@@ -104,6 +104,9 @@
                     password:'123456'
                 },
                 registerVo:{ // 注册对象
+                    phone:'17633837738',
+                    name:'邹宇航',
+                    password:'123456'
                 },
                 msg:'发送验证码',
                 sendCodeDisabled: false,// 禁止发送验证码？
@@ -184,6 +187,11 @@
                 })
             },
             userRegister(){ // 注册
+                registUser(this.registerVo).then(response =>{
+                    if(response){
+                        this.$router.replace("/")
+                    }
+                });
             },
             getUserInfo(){
                 userInfo().then(response => {

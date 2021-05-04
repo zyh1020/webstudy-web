@@ -2,7 +2,29 @@
     <div class="person">
         <el-card class="content">
             <el-tabs tab-position="left" v-model="activeId" class="tabContent">
-                <el-tab-pane label="个人信息" name="personal">个人信息</el-tab-pane>
+                <el-tab-pane label="个人信息" name="personal">
+                    <div id="contentHeader">
+                        <el-divider content-position="left">头像信息</el-divider>
+                        <el-upload
+                                class="avatar-uploader"
+                                action="/api/ali/oss/uploadImage"
+                                :show-file-list="false"
+                                :headers="headers"
+                                :on-success="handleAvatarSuccess"
+                                :before-upload="beforeAvatarUpload">
+                            <img v-if="userInfo.userAvatar" :src="userInfo.userAvatar" class="avatar">
+                            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                        </el-upload>
+                        <el-divider content-position="left">基础信息</el-divider>
+                        <el-form ref="form" :inline="true" :model="userInfo" label-width="80px">
+                            <el-form-item label="用户昵称">
+                                <el-input v-model="userInfo.name" :disabled="isLock"></el-input>
+                            </el-form-item>
+                        </el-form>
+                        <el-button type="primary" @click="clickLocking">{{isLock ? '解锁':'锁定'}}</el-button>
+                        <el-button type="success" @click="updateUser">修改</el-button>
+                    </div>
+                </el-tab-pane>
                 <el-tab-pane label="课程管理" name="courses">
                     <el-table
                             :data="tableData"
@@ -25,7 +47,7 @@
                     </el-table>
                 </el-tab-pane>
                 <el-tab-pane label="问题管理" name="questions">
-                    <el-tabs type="card" v-model="questionsTab">
+                    <el-tabs type="card" v-model="activeQuestionsId">
                         <el-tab-pane label="问题" name="first">
                             <el-table
                                     :data="problems"
@@ -72,7 +94,46 @@
                             </el-pagination>
                         </el-tab-pane>
                         <el-tab-pane label="回答" name="second">
-                            配置管理
+                            <el-table
+                                    :data="answers"
+                                    stripe
+                                    style="width: 100%">
+                                <el-table-column
+                                        label="所属问题"
+                                        width="180">
+                                    <template slot-scope="scope">
+                                        <el-link type="primary" @click="clickProblem(scope.row.problem)">{{scope.row.problem.problemTitle}}</el-link>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column
+                                        label="我的回答"
+                                        prop="answerContent"
+                                        width="350">
+                                </el-table-column>
+                                <el-table-column
+                                        label="最新时间"
+                                        width="180">
+                                    <template slot-scope="scope">
+                                        {{scope.row.updateTime | formatDate}}
+                                    </template>
+                                </el-table-column>
+                                <el-table-column label="操作">
+                                    <template slot-scope="scope">
+                                        <el-button size="mini" @click="handleEditAnswer(scope.row)">编辑</el-button>
+                                        <el-button size="mini" type="danger" @click="handleDeleteAnswer(scope.row)">删除</el-button>
+                                    </template>
+                                </el-table-column>
+                            </el-table>
+                            <!-- 分页 -->
+                            <el-pagination
+                                    style="margin: 30px auto"
+                                    background
+                                    layout="prev, pager, next"
+                                    :current-page="anPage"
+                                    :page-size="pageSize"
+                                    :total="anTotal"
+                                    @current-change="pageAnswerChange">
+                            </el-pagination>
                         </el-tab-pane>
                     </el-tabs>
                 </el-tab-pane>
@@ -122,7 +183,7 @@
                 </el-tab-pane>
             </el-tabs>
         </el-card>
-        <!-- 添加问题对话框 -->
+        <!-- 修改问题对话框 -->
         <el-dialog
                 title="修改问题"
                 :visible.sync="updateProblemDialogVisible"
@@ -147,6 +208,18 @@
                 <el-button type="primary" @click="updateProblem">确 定</el-button>
             </span>
         </el-dialog>
+        <!-- 修改答案对话框 -->
+        <el-dialog
+                title="修改答案"
+                :visible.sync="updateAnswerVisible"
+                width="30%">
+            <el-input type="textarea" v-model="answer.answerContent" :rows="8">
+            </el-input>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="updateAnswerVisible = false">取 消</el-button>
+                <el-button type="primary" @click="updateAnswer">确 定</el-button>
+            </span>
+        </el-dialog>
     </div>
 </template>
 
@@ -154,6 +227,8 @@
     import {getPersonOfActicles,deleteArticleById} from '@/api/article/article'
     import {findPersonOfQuestions,updateOneProblem,deleteOneProblem} from '@/api/question/problem'
     import {getAllCategoryList} from '@/api/sort/category'
+    import {getPersonOfAnswers,updateAnswer,deleteAnswer} from '@/api/question/answer'
+    import {userInfo,updateUserHeard,updateUserInfo} from '@/api/user/user'
     export default {
         name: "Person",
         filters:{
@@ -171,12 +246,25 @@
         },
         data() {
             return {
-                activeId:'questions', // 激活的标签页
-                questionsTab:'first',
+                headers:{
+                    token: window.sessionStorage.getItem('token')
+                },
+                isLock: true, // 锁定
                 pageSize:1,
                 allSorts:[], // 分类列表
                 oneLevelSorts:[],// 所有的一级分类
                 twoLevelSorts:[], // 所有的二级分类
+                activeQuestionsId:'first',
+                activeId:'personal',
+                // 用户
+                userInfo:{},
+                updateUserInfo:{},
+                // 回答
+                anPage:1,
+                anTotal:0,
+                answers:[],
+                updateAnswerVisible:false,// 修改
+                answer:{},
                 // 问题
                 prPage:1,
                 prTotal:0,
@@ -229,6 +317,101 @@
                         this.oneLevelSorts.push(sort);
                     }
                 }
+            },
+            // 锁定
+            clickLocking(){
+                this.isLock = !this.isLock;
+            },
+            // 查询个人信息
+            getUserInfo(){
+                userInfo().then(response =>{
+                     this.userInfo =response.data;
+                });
+            },
+            handleAvatarSuccess(res, file) {
+                // 保存图片地址
+                // 修改值
+                this.updateUserInfo.id = this.userInfo.id;
+                this.updateUserInfo.userAvatar = res.data;
+                updateUserHeard(this.updateUserInfo).then(response =>{
+                    if(response){
+                        // 查询个人信息
+                        this.getUserInfo();
+                    }
+                });
+            },
+            beforeAvatarUpload(file) {
+                const isJPG = file.type === 'image/jpeg';
+                const isLt2M = file.size / 1024 / 1024 < 2;
+                if (!isJPG) {
+                    this.$message.error('上传头像图片只能是 JPG 格式!');
+                }
+                if (!isLt2M) {
+                    this.$message.error('上传头像图片大小不能超过 2MB!');
+                }
+                return isJPG && isLt2M;
+            },
+            // 修改用户的基本信息
+            updateUser(){
+                this.updateUserInfo.id = this.userInfo.id;
+                this.updateUserInfo.name = this.userInfo.name;
+                updateUserInfo(this.updateUserInfo).then(response =>{
+                    if(response){
+                        // 查询个人信息
+                        this.getUserInfo();
+                    }
+                });
+            },
+            // 查询答案
+            getPersonOfAnswers(){
+                getPersonOfAnswers(this.anPage,this.pageSize).then(response => {
+                    if(response){
+                        this.answers = response.data.answers;
+                        this.anTotal = response.data.total;
+                    }
+                });
+            },
+            // 删除答案
+            handleDeleteAnswer(answer){
+                this.$confirm('此操作将永久删除该答案是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    // 删除答案
+                    deleteAnswer(answer.id).then(response =>{
+                        if(response){
+                            // 查询答案
+                            this.getPersonOfAnswers();
+                        }
+                    });
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消删除'
+                    });
+                });
+            },
+            // 编辑答案
+            handleEditAnswer(answer){
+                this.answer = answer;
+                this.updateAnswerVisible = true;
+            },
+            // 修改答案
+            updateAnswer(){
+                updateAnswer(this.answer).then(response =>{
+                    if(response){
+                        // 查询答案
+                        this.getPersonOfAnswers();
+                        this.updateAnswerVisible = false;
+                    }
+                });
+            },
+            // 答案分页改变
+            pageAnswerChange(pageNum){
+                this.anPage = pageNum;
+                // 查询答案
+                this.getPersonOfAnswers();
             },
             // 查询问题
             getProblems(){
@@ -335,12 +518,17 @@
             if(this.$route.query != null && this.$route.query.activeId != null){
                 this.activeId = this.$route.query.activeId;
             }
+            // 查询个人信息
+            this.getUserInfo();
             // 获取分类列表
             this.getSortList();
             // 获取文章
             this.getActicles();
             // 查询问题
-            this.getProblems()
+            this.getProblems();
+            // 查询答案
+            this.getPersonOfAnswers();
+
         }
     }
 </script>
@@ -352,5 +540,30 @@
     }
     .tabContent{
         height: 540px;
+    }
+    .avatar-uploader {
+        border: 1px dashed #d9d9d9;
+        border-radius: 6px;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        width: 178px;
+        height: 178px;
+    }
+    .avatar-uploader:hover {
+        border-color: #409EFF;
+    }
+    .avatar-uploader-icon {
+        font-size: 28px;
+        color: #8c939d;
+        width: 178px;
+        height: 178px;
+        line-height: 178px;
+        text-align: center;
+    }
+    .avatar {
+        width: 178px;
+        height: 178px;
+        display: block;
     }
 </style>

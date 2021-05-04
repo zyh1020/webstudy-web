@@ -17,3 +17,32 @@ export function userInfo(){
         method: 'get'
     });
 }
+
+
+
+// 修改用户基本信息
+export function updateUserInfo(userUpdateVo){
+    return request({
+        url: '/user/updateUserInfo',
+        method: 'post',
+        data:userUpdateVo
+    });
+}
+
+// 修改用户头像信息
+export function updateUserHeard(userUpdateVo){
+    return request({
+        url: '/user/updateUserHeard',
+        method: 'post',
+        data:userUpdateVo
+    });
+}
+
+// 注册用户
+export function registUser(userRegisterVo){
+    return request({
+        url: '/user/insertUser',
+        method: 'post',
+        data:userRegisterVo
+    });
+}
