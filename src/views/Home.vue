@@ -11,7 +11,6 @@
             <nav-bottom-course/>
         </div>
         <!--  实战导航 -->
-
         <home-course-container :list="recommend" title="实／战／推／荐" type="recommend" :position="0" />
         <!-- 新上好课 -->
         <home-course-container :list="newcourse" title="新／上／好／课" type="new" :position="1" />

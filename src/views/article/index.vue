@@ -108,7 +108,12 @@
         },
         methods: {
             showAddArticle(){ // 路由跳转到添加文章界面
-                this.$router.push("/addOrUpdteArticle");
+                let token = window.sessionStorage.getItem("token");
+                if(token){
+                    this.$router.push("/addOrUpdteArticle");
+                }else {
+                    this.$message.error('尚未登录，请先登录！');
+                }
             },
             // 跳转到文章详情界面
             toArticle(article){

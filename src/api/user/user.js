@@ -46,3 +46,11 @@ export function registUser(userRegisterVo){
         data:userRegisterVo
     });
 }
+
+// 发送手机验证码
+export function sendPhoneCode(phone){
+    return request({
+        url: '/ali/msm/sendCode/'+phone,
+        method: 'get'
+    });
+}

@@ -32,7 +32,8 @@
             <tinymce-editor
                     id="editor"
                     v-model="article.articleContent"
-                    :height="600"/>
+                    :height="600"
+                    />
         </el-card>
     </div>
 </template>

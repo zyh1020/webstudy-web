@@ -12,8 +12,10 @@
                                 :headers="headers"
                                 :on-success="handleAvatarSuccess"
                                 :before-upload="beforeAvatarUpload">
-                            <img v-if="userInfo.userAvatar" :src="userInfo.userAvatar" class="avatar">
-                            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                            <el-tooltip class="item" effect="dark" content="点击头像修改" placement="right">
+                                <img v-if="userInfo.userAvatar" :src="userInfo.userAvatar" class="avatar">
+                                <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                            </el-tooltip>
                         </el-upload>
                         <el-divider content-position="left">基础信息</el-divider>
                         <el-form ref="form" :inline="true" :model="userInfo" label-width="80px">
@@ -27,24 +29,56 @@
                 </el-tab-pane>
                 <el-tab-pane label="课程管理" name="courses">
                     <el-table
-                            :data="tableData"
-                            stripe
-                            style="width: 100%">
+                            :data="courses"
+                            stripe>
                         <el-table-column
-                                prop="date"
-                                label="日期"
-                                width="180">
+                                prop="title"
+                                label="课程标题"
+                                width="200px">
+                            <template slot-scope="scope">
+                                <el-link type="primary" @click="toCourseDetail(scope.row)">{{scope.row.title}}</el-link>
+                            </template>
                         </el-table-column>
                         <el-table-column
-                                prop="name"
-                                label="姓名"
-                                width="180">
+                                prop="sortParentName"
+                                label="一级分类">
                         </el-table-column>
                         <el-table-column
-                                prop="address"
-                                label="地址">
+                                prop="sortName"
+                                label="二级分类">
+                        </el-table-column>
+                        <el-table-column
+                                prop="difficulty"
+                                label="课程难度">
+                            <template slot-scope="scope">
+                                {{scope.row.difficulty}}颗星
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                                prop="lookPersonNum"
+                                label="观看人数">
+                        </el-table-column>
+                        <el-table-column
+                                prop="studyPersonNum"
+                                label="学习人数">
+                        </el-table-column>
+                        <el-table-column
+                                label="取消关注">
+                            <template slot-scope="scope">
+                                <el-button type="danger" @click="deleteCourse(scope.row)" icon="el-icon-delete" size="mini"/>
+                            </template>
                         </el-table-column>
                     </el-table>
+
+                    <!-- 分页 -->
+                    <el-pagination
+                            background
+                            layout="prev, pager, next"
+                            :current-page="coPage"
+                            :page-size="pageSize"
+                            :total="coTotal"
+                            @current-change="pageCourseChange">
+                    </el-pagination>
                 </el-tab-pane>
                 <el-tab-pane label="问题管理" name="questions">
                     <el-tabs type="card" v-model="activeQuestionsId">
@@ -229,6 +263,7 @@
     import {getAllCategoryList} from '@/api/sort/category'
     import {getPersonOfAnswers,updateAnswer,deleteAnswer} from '@/api/question/answer'
     import {userInfo,updateUserHeard,updateUserInfo} from '@/api/user/user'
+    import {getFollowCourses,cancelFollowCourses} from '@/api/course/courseInfo'
     export default {
         name: "Person",
         filters:{
@@ -259,6 +294,10 @@
                 // 用户
                 userInfo:{},
                 updateUserInfo:{},
+                // 课程
+                coPage:1,
+                coTotal:0,
+                courses:[],
                 // 回答
                 anPage:1,
                 anTotal:0,
@@ -275,23 +314,7 @@
                 arPage:1,
                 arTotal:0,
                 article:[],
-                tableData: [{
-                    date: '2016-05-02',
-                    name: '王小虎',
-                    address: '上海市普陀区金沙江路 1518 弄'
-                }, {
-                    date: '2016-05-04',
-                    name: '王小虎',
-                    address: '上海市普陀区金沙江路 1517 弄'
-                }, {
-                    date: '2016-05-01',
-                    name: '王小虎',
-                    address: '上海市普陀区金沙江路 1519 弄'
-                }, {
-                    date: '2016-05-03',
-                    name: '王小虎',
-                    address: '上海市普陀区金沙江路 1516 弄'
-                }]
+
             }
 
         },
@@ -308,6 +331,7 @@
             },
             // 筛选分类列表
             getScreenSortList(){
+
                 this.oneLevelSorts = [];
                 this.twoLevelSorts = [];
                 for(let sort of this.allSorts){
@@ -317,6 +341,35 @@
                         this.oneLevelSorts.push(sort);
                     }
                 }
+            },
+            // 查询关注的课程
+            getCourseList(){
+                getFollowCourses(this.coPage,this.pageSize).then(response =>{
+                    if(response){
+                        this.courses = response.data.courses;
+                        this.coTotal = response.data.total;
+                    }
+                });
+            },
+            // 课程详情
+            toCourseDetail(course){
+                this.$router.push({
+                    path:'/courseDetail',
+                    query:{ courseId:course.id}})
+            },
+            // 课程分页改变
+            pageCourseChange(pageNum){
+                this.coPage = pageNum;
+                this.getCourseList();
+            },
+            // 取消关注课程
+            deleteCourse(course){
+                this.coPage = 1;
+                    cancelFollowCourses(course.id).then(response =>{
+                    if(response){
+                        this.getCourseList();
+                    }
+                });
             },
             // 锁定
             clickLocking(){
@@ -518,6 +571,8 @@
             if(this.$route.query != null && this.$route.query.activeId != null){
                 this.activeId = this.$route.query.activeId;
             }
+            // 查询关注的课程
+            this.getCourseList();
             // 查询个人信息
             this.getUserInfo();
             // 获取分类列表

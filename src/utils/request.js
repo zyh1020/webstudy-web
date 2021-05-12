@@ -2,6 +2,8 @@ import axios from 'axios'
 import {Message} from 'element-ui'
 import router from '../router'
 
+axios.defaults.withCredentials=true;
+
 // 创建axios实例
 const service = axios.create({
     baseURL: '/api', // base_url
@@ -40,7 +42,6 @@ service.interceptors.response.use( success =>{
         Message.error({message:'权限不足！'});
     }else if(error.response.code == 401){
         Message.error({message:'尚未登录，请登录！'});
-        router.replace("/");
     }else{
         if(error.response.data.message){
             Message.error({message:error.response.data.message});

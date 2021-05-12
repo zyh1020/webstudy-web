@@ -181,7 +181,7 @@
             handleCourseClick (lesson) {
                 this.$router.push({
                     path:'/courseDetail',
-                    query:{ courseId:1 }})
+                    query:{ courseId:lesson.id}})
             },
             // 点击一级分类
             OneLevelSortClick (sort) {

@@ -163,10 +163,17 @@
             },
             // 添加问题对话框
             async showAddProblemDialog(){
-                if(this.twoLevelSorts.length <= 0){
-                  await this.getSortList();
+                // ①，获取用户
+                let token = window.sessionStorage.getItem("token");
+                if(token){
+                    if(this.twoLevelSorts.length <= 0){
+                        await this.getSortList();
+                    }
+                    this.addProblemDialogVisible = true;
+                }else {
+                    this.$message.error('尚未登录，请先登录！');
                 }
-                this.addProblemDialogVisible = true;
+
             },
             // 添加问题
             addProblem(){

@@ -49,7 +49,8 @@
         <el-dialog
                 :visible.sync="loginDialogVisible"
                 width="30%"
-                append-to-body>
+                append-to-body
+                :modal="false">
                 <el-tabs v-model="activeName" type="card">
                     <el-tab-pane label="登录" name="login">
                         <el-form ref="loginVo" :model="loginVo" label-width="80px">
@@ -78,7 +79,7 @@
                             </el-form-item>
                             <el-form-item label="验证码">
                                 <el-input v-model="registerVo.code" style="width: 50%"></el-input>
-                                <el-input type="button" @click="sendCode" v-model="msg"  style="margin-left:30px;width: 30%" :disabled="sendCodeDisabled"/>
+                                <el-button @click="sendCode" style="margin-left:30px;width: 30%" :disabled="sendCodeDisabled">{{msg}}</el-button>
                             </el-form-item>
                         </el-form>
                     </el-tab-pane>
@@ -92,7 +93,7 @@
 </template>
 
 <script>
-    import {userLogin,userInfo,registUser} from '@/api/user/user'
+    import {userLogin,userInfo,registUser,sendPhoneCode} from '@/api/user/user'
     export default {
         name: "Header",
         data(){
@@ -147,7 +148,13 @@
                 this.loginDialogVisible = true;
             },
             // 发送验证码
-            sendCode(){
+            async sendCode(){
+                console.log(this.activeName);
+                if(this.activeName == 'login'){
+                    await sendPhoneCode(this.loginVo.username);
+                }else if(this.activeName == 'register'){
+                    await sendPhoneCode(this.registerVo.phone);
+                }
                 // 验证码60秒倒计时
                 if (!this.timer) {
                     this.timer = setInterval(() => {

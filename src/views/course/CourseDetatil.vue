@@ -10,7 +10,8 @@
           </p>
           <!-- 按钮 -->
           <p class="share-box">
-            <span class="iconfont el-icon-star-off"></span>
+            <span class="iconfont el-icon-star-off" style="color: yellow" v-show="isFollow" @click="followOrCancelCourse"></span>
+            <span class="iconfont el-icon-star-off"  v-show="!isFollow" @click="followOrCancelCourse"></span>
           </p>
           <h2 class="title">
             {{ courseVo.title }}
@@ -118,7 +119,7 @@
 <script>
 import DetailTags from './tags.vue'
 
-import {findOneCourseInfo} from '@/api/course/courseInfo'
+import {findOneCourseInfo,isFollowCourses,cancelFollowCourses,followCourse} from '@/api/course/courseInfo'
 import {findOneCourseAllCapter} from '@/api/course/courseChapter'
 import {getPlayauth} from '@/api/course/courseVedio'
 
@@ -132,6 +133,7 @@ export default {
       currentVediotitle:'', //当前视频标题
       chapters: [], // 课程的章节列表
       courseVo: {}, // 课程信息
+      isFollow: false,// 关注的课程
       isComplete: true,
       aliPlayer:null,
       playVedioVisible: false,
@@ -190,12 +192,50 @@ export default {
       // 查询章节信息
       await this.findCourseAllCapter();
     },
+    // 关注课程
+    followOrCancelCourse(){
+      // ①，获取用户
+      let token = window.sessionStorage.getItem("token");
+      if(token){
+        if(this.isFollow){
+          // 取消关注
+          cancelFollowCourses(this.currentCourseId).then(response => {
+            if(response){
+              this.isFollow = false;
+            }
+          });
+        }else {
+          // 关注
+          followCourse(this.currentCourseId).then(response => {
+            if(response){
+              this.isFollow = true;
+            }
+          });
+        }
+      }else {
+        this.$message.error('尚未登录，请先登录！');
+      }
+    }
   },
   mounted () {
     // 判断是否需要查询数据
     if(this.$route.query != null && this.$route.query.courseId != null){
       this.currentCourseId = this.$route.query.courseId;
       this.initData();
+      // ①，获取用户
+      let token = window.sessionStorage.getItem("token");
+      console.log("用户登录了");
+      if(token){
+        isFollowCourses(this.currentCourseId).then(response =>{
+            if(response){
+              if(response.data > 0){
+                this.isFollow = true;
+              }else {
+                this.isFollow = false;
+              }
+            }
+        })
+      }
     }
 
   },

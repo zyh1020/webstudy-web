@@ -23,3 +23,32 @@ export function findCourses(type,limit) { // 查询课程信息
         method: 'get'
     });
 }
+
+export function getFollowCourses(currentPage,size) { // 获取关注课程列表
+    return request({
+        url: `/cou/info/followCourses/${currentPage}/${size}`,
+        method: 'get'
+    });
+}
+
+export function cancelFollowCourses(courseId) { // 取消关注
+    return request({
+        url: `/cou/info/cancelFollowCourses/${courseId}`,
+        method: 'get'
+    });
+}
+
+export function isFollowCourses(courseId) { // 判断关注
+    return request({
+        url: `/cou/info/isFollowCourses/${courseId}`,
+        method: 'get'
+    });
+}
+
+export function followCourse(courseId) { // 关注课程
+    return request({
+        url: `/cou/info/followCourse/${courseId}`,
+        method: 'get'
+    });
+}
+

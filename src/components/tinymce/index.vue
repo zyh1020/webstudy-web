@@ -52,8 +52,12 @@
                 default: 'link lists image code table wordcount media fullscreen preview paste contextmenu textcolor'
             },
             toolbar: {
-                type: [String, Array],
+                type: [String, Array,Boolean],
                 default: 'fontselect | bold italic underline strikethrough | link unlink image | undo redo | fontsizeselect | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist | outdent indent blockquote | code | removeformat'
+            },
+            menubar:{
+                type:Boolean,
+                default: true
             }
         },
         data() {
@@ -75,7 +79,7 @@
                     toolbar: this.toolbar,
                     paste_data_images: true,
                     statusbar: true, // 底部的状态栏
-                    menubar: true, // 最上方的菜单
+                    menubar: this.menubar, // 最上方的菜单
                     branding: false, // 水印“Powered by TinyMCE”
                     images_upload_handler: (blobInfo, success, failure) => {
                         this.$emit('handleImgUpload', blobInfo, success, failure);

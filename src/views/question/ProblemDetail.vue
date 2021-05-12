@@ -114,8 +114,14 @@
             },
             // 问题弹框
             showAddAnswer(){
-                this.answerContent = '';
-                this.addAnswerVisible = true;
+                // ①，获取用户
+                let token = window.sessionStorage.getItem("token");
+                if(token){
+                    this.answerContent = '';
+                    this.addAnswerVisible = true;
+                }else {
+                    this.$message.error('尚未登录，请先登录！');
+                }
             },
             // 添加答案
             addAnswer(){
